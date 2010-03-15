@@ -9,6 +9,7 @@
 #include "tdict.h"
 #include "fdict.h"
 #include "trule.h"
+#include "dwarf.h"
 
 std::istream* scfglex_stream = NULL;
 RuleLexer::RuleCallback rule_callback = NULL;
@@ -26,6 +27,7 @@ bool fl = true;
 std::string scfglex_tmp_token(MAX_TOKEN_SIZE, '\0');
 
 #define MAX_RULE_SIZE 48
+#define MAX_ALS 25
 WordID scfglex_src_rhs[MAX_RULE_SIZE];
 WordID scfglex_trg_rhs[MAX_RULE_SIZE];
 int scfglex_src_rhs_size;
@@ -44,7 +46,7 @@ int scfglex_nt_sanity[MAX_ARITY];
 int scfglex_src_nts[MAX_ARITY];
 float scfglex_nt_size_means[MAX_ARITY];
 float scfglex_nt_size_vars[MAX_ARITY];
-
+int scfglex_als[MAX_ALS];
 
 void sanity_check_trg_symbol(WordID nt, int index) {
   if (scfglex_src_nts[index-1] != nt) {
@@ -74,6 +76,7 @@ void scfglex_reset() {
   scfglex_num_feats = 0;
   scfglex_src_rhs_size = 0;
   scfglex_trg_rhs_size = 0;
+  scfglex_als[0]=0;
 }
 
 %}
@@ -176,7 +179,7 @@ NT [A-Z_][A-Z+/=_0-9!:@]*
 <TRG>[ \t]+	{ ; }
 
 <TRG,FEATS,ALIGNS>\n	{
-		TRulePtr rp(new TRule(scfglex_lhs, scfglex_src_rhs, scfglex_src_rhs_size, scfglex_trg_rhs, scfglex_trg_rhs_size, scfglex_feat_ids, scfglex_feat_vals, scfglex_num_feats, scfglex_src_arity));
+		TRulePtr rp(new TRule(scfglex_lhs, scfglex_src_rhs, scfglex_src_rhs_size, scfglex_trg_rhs, scfglex_trg_rhs_size, scfglex_feat_ids, scfglex_feat_vals, scfglex_num_feats, scfglex_src_arity, scfglex_als));
 		rule_callback(rp, rule_callback_extra);
 		// std::cerr << rp->AsString() << std::endl;
 		num_rules++;
@@ -219,7 +222,7 @@ NT [A-Z_][A-Z+/=_0-9!:@]*
 		int b = 0;
 		while (i < yyleng) {
 		  char c = yytext[i];
-		  if (c == '-') break;
+ 		  if (c=='-') break;
 		  a *= 10;
 		  a += c - '0';
 		  ++i;
@@ -230,6 +233,7 @@ NT [A-Z_][A-Z+/=_0-9!:@]*
 		  b += yytext[i] - '0';
 		  ++i;
 		}
+		scfglex_als[++scfglex_als[0]] = Alignment::link(a,b);
 		// TODO store alignment points somewhere
 		}
 <ALIGNS>[ \t]	;

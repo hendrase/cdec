@@ -4,6 +4,7 @@
 
 #include "stringlib.h"
 #include "tdict.h"
+#include "dwarf.h"
 
 using namespace std;
 
@@ -110,7 +111,12 @@ bool TRule::ReadFromString(const string& line, bool strict, bool mono) {
       getline(is, ss);
       //cerr << "L: " << ss << endl;
       int start = 0;
-      const int len = ss.size();
+
+      string delim = "|";
+      int len = ss.find_first_of(delim)-1;
+      if (len<=-1) len = ss.size();
+
+      //const int len = ss.size();
       while (start < len) {
         while(start < len && (ss[start] == ' ' || ss[start] == ';'))
           ++start;
@@ -145,6 +151,18 @@ bool TRule::ReadFromString(const string& line, bool strict, bool mono) {
           //cerr << "F: " << FD::Convert(fid) << " VAL=" << scores_.value(fid) << endl;
         }
         start = end + 1;
+      }
+      // alignments
+      if (len != ss.size()) {
+        int last = ss.find_last_of(delim);
+        string as = ss.substr(last+2); //sloppy
+        istringstream ass(as);
+        while (ass>>w) {
+                int hypen = w.find_first_of("-");
+                int isource = atoi(w.substr(0,hypen).c_str());
+                int itarget = atoi(w.substr(hypen+1).c_str());
+                a_.push_back(Alignment::link(isource,itarget));
+        }
       }
     }
   } else if (format == 1) {
@@ -237,6 +255,10 @@ string TRule::AsString(bool verbose) const {
   }
   if (!scores_.empty() && verbose) {
     os << " ||| " << scores_;
+  }
+  if (a_.size()>0) {
+    os << " ||| ";
+    for (int i=0; i<a_.size(); i++) os << Alignment::source(a_[i]) << "-" << Alignment::target(a_[i]) << " ";
   }
   return os.str();
 }

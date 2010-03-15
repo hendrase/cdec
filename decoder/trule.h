@@ -5,12 +5,14 @@
 #include <vector>
 #include <cassert>
 #include <boost/shared_ptr.hpp>
+#include <sstream>
 
 #include "sparse_vector.h"
 #include "wordid.h"
 
 class TRule;
 typedef boost::shared_ptr<TRule> TRulePtr;
+using namespace std;
 
 struct NTSizeSummaryStatistics {
   NTSizeSummaryStatistics(int arity) : means(arity), vars(arity) {}
@@ -22,10 +24,12 @@ struct NTSizeSummaryStatistics {
 class TRule {
  public:
   TRule() : lhs_(0), prev_i(-1), prev_j(-1) { }
-  TRule(WordID lhs, const WordID* src, int src_size, const WordID* trg, int trg_size, const int* feat_ids, const double* feat_vals, int feat_size, int arity) :
+  TRule(WordID lhs, const WordID* src, int src_size, const WordID* trg, int trg_size, const int* feat_ids, const double* feat_vals, int feat_size, int arity, int* als) :
       e_(trg, trg + trg_size), f_(src, src + src_size), lhs_(lhs), arity_(arity), prev_i(-1), prev_j(-1) {
     for (int i = 0; i < feat_size; ++i)
       scores_.set_value(feat_ids[i], feat_vals[i]);
+    for (int i = 1; i<=als[0]; i++)
+      a_.push_back(als[i]);
   }
 
   explicit TRule(const std::vector<WordID>& e) : e_(e), lhs_(0), prev_i(-1), prev_j(-1) {}
@@ -124,6 +128,7 @@ class TRule {
   std::vector<WordID> e_;
   // < 0: *-1 = encoding of category of variable
   std::vector<WordID> f_;
+  std::vector<int> a_;
   WordID lhs_;
   SparseVector<double> scores_;
   

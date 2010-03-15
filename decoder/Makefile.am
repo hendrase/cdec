@@ -1,4 +1,5 @@
-bin_PROGRAMS = cdec
+bin_PROGRAMS = cdec \
+               dwarf
 
 if HAVE_GTEST
 noinst_PROGRAMS = \
@@ -29,6 +30,7 @@ trule_test_SOURCES = trule_test.cc
 trule_test_LDADD = $(GTEST_LDFLAGS) $(GTEST_LIBS) libcdec.a
 weights_test_SOURCES = weights_test.cc
 weights_test_LDADD = $(GTEST_LDFLAGS) $(GTEST_LIBS) libcdec.a
+dwarf_SOURCES = dwarf_main.cc dwarf.cc
 
 LDADD = libcdec.a
 
@@ -77,4 +79,6 @@ libcdec_a_SOURCES = \
   phrasebased_translator.cc \
   JSON_parser.c \
   json_parse.cc \
-  grammar.cc
+  grammar.cc \
+  dwarf.cc \
+  ff_dwarf.cc

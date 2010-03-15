@@ -6,6 +6,7 @@
 #include "ff_wordalign.h"
 #include "ff_tagger.h"
 #include "ff_factory.h"
+#include "ff_dwarf.h"
 
 boost::shared_ptr<FFRegistry> global_ff_registry;
 
@@ -28,5 +29,6 @@ void register_feature_functions() {
   global_ff_registry->Register("CSplit_ReverseCharLM", new FFFactory<ReverseCharLMCSplitFeature>);
   global_ff_registry->Register("Tagger_BigramIdentity", new FFFactory<Tagger_BigramIdentity>);
   global_ff_registry->Register("LexicalPairIdentity", new FFFactory<LexicalPairIdentity>);
+  global_ff_registry->Register("Dwarf", new FFFactory<Dwarf>);
 };
 

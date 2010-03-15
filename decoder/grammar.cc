@@ -134,7 +134,7 @@ PassThroughGrammar::PassThroughGrammar(const Lattice& input, const string& cat) 
       const int j = alts[k].dist2next + i;
       has_rule_[i].insert(j);
       const string& src = TD::Convert(alts[k].label);
-      TRulePtr pt(new TRule("[" + cat + "] ||| " + src + " ||| " + src + " ||| PassThrough=1"));
+      TRulePtr pt(new TRule("[" + cat + "] ||| " + src + " ||| " + src + " ||| PassThrough=1 ||| 0-0"));
       AddRule(pt);
 //      cerr << "PT: " << pt->AsString() << endl;
     }
