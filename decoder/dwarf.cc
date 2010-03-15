@@ -664,7 +664,7 @@ void Alignment::fillFWIdxs(int* state, int fas, int las, int fat, int lat) {
 
 }
 
-void Alignment::SplitIfViolateDanglingTargetFWIdxs(vector<int *>*blocks, int* block, vector<int>danglings) {
+void Alignment::SplitIfViolateDanglingTargetFWIdxs(vector<int *>*blocks, int* block, const vector<int>& danglings) {
   //cerr << "SplitIfViolateDanglingTargetFWIdxs[" << block[0] << "," << block[1] << "," << block[2] << "," << block[3] << "]" << endl;
   if (danglings.size()==0) {
     //cerr << "4cpushing " << block[0] << "," << block[1] << "," << block[2] << "," << block[3] << endl;
@@ -980,7 +980,7 @@ void Alignment::quickSort(int arr[], int left, int right) {
             quickSort(arr, i, right);
 }
 
-void Alignment::ScoreOrientation(CountTable table, int offset, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::ScoreOrientation(const CountTable& table, int offset, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   //cerr << "ScoreOrientation:" << cond1 << "," << cond2 << endl;
   //cerr << "isBonus:" << isBonus << endl;
   std::string key1_part1(TD::Convert(cond1));
@@ -988,9 +988,10 @@ void Alignment::ScoreOrientation(CountTable table, int offset, int ori, WordID c
   std::string key = key1_part1 + " " + key1_part2;
   WordID key1_id = TD::Convert(key);
   double c1=0; double t1=0; double c2=0; double t2=0; double c3=0; double t3=0;
-  if (table.first.find(key1_id)!=table.first.end()) {
-    c1 = table.first[key1_id][offset+ori-1];
-    t1 = table.first[key1_id][offset+5];
+  map<WordID,int*>::const_iterator it = table.first.find(key1_id);
+  if (it!=table.first.end()) {
+    c1 = it->second[offset+ori-1];
+    t1 = it->second[offset+5];
   } else {
     if (isBonus) {
       *bo1_bonus+=1;
@@ -1000,9 +1001,10 @@ void Alignment::ScoreOrientation(CountTable table, int offset, int ori, WordID c
       //cerr << "adding bo1[1], new val=" << *bo1 << endl;
     }
   }
-  if (table.second.find(cond1)!=table.second.end()) {
-    c2 = table.second[cond1][offset+ori-1];
-    t2 = table.second[cond1][offset+5];
+  it = table.second.find(cond1);
+  if (it!=table.second.end()) {
+    c2 = it->second[offset+ori-1];
+    t2 = it->second[offset+5];
   } else {
     if (isBonus) {
       *bo2_bonus+=1;
@@ -1025,18 +1027,18 @@ void Alignment::ScoreOrientation(CountTable table, int offset, int ori, WordID c
   }
 }
 
-void Alignment::ScoreOrientationLeft(CountTable table, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::ScoreOrientationLeft(const CountTable& table, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   //cerr << "ScoreOrientationLeft" << endl;
   ScoreOrientation(table,0,ori,cond1,cond2,isBonus,cost,bonus,bo1,bo1_bonus,bo2,bo2_bonus);
 }
 
-void Alignment::ScoreOrientationRight(CountTable table, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::ScoreOrientationRight(const CountTable& table, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   //cerr << "ScoreOrientationRight" << endl;
   ScoreOrientation(table,6,ori,cond1,cond2,isBonus,cost,bonus,bo1,bo1_bonus,bo2,bo2_bonus);
 }
 
 
-void Alignment::computeOrientationSource(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::computeOrientationSource(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   //cerr << "computeOrientationSource" << endl;
   int oril, orir;
   for (int idx=1; idx<=SourceFWRuleIdxs[0]; idx++) {
@@ -1097,7 +1099,7 @@ void Alignment::computeOrientationSource(CountTable table, double *cost, double 
   //cerr << "END of computeOrientationSource" << endl;  
 }
 
-void Alignment::computeOrientationTarget(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::computeOrientationTarget(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   //cerr << "computeOrientationTarget" << endl;
   int oril, orir;
   for (int idx=1; idx<=TargetFWRuleIdxs[0]; idx++) {
@@ -1167,7 +1169,7 @@ bool Alignment::MemberOf(int* FWIdxs, int pos1, int pos2) {
   return false;
 }
 
-void Alignment::computeDominanceSource(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::computeDominanceSource(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   // no bonus yet
   //cerr << "computeDominanceSource" << endl;
   //cerr << "cost="  << *cost << ", bo1=" << *bo1 << ", bo2=" << *bo2 << endl;
@@ -1191,7 +1193,7 @@ void Alignment::computeDominanceSource(CountTable table, double *cost, double *b
   //cerr << "END of computeDominanceSource" << endl;
 }
 
-void Alignment::computeDominanceTarget(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::computeDominanceTarget(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
    //cerr << "computeDominanceTarget" << endl;
   for (int idx=2; idx<=TargetFWIdxs[0]; idx++) {
     //cerr << "PrevTargetFWIdxs :" << TargetFWIdxs[3*(idx-1)-2] << "," << TargetFWIdxs[3*(idx-1)-1] << "," <<TargetFWIdxs[3*(idx-1)] << endl;
@@ -1214,7 +1216,7 @@ void Alignment::computeDominanceTarget(CountTable table, double *cost, double *b
   //cerr << "END of computeDominanceTarget" << endl;
 }
 
-void Alignment::ScoreDominance(CountTable table, int dom, WordID source1, WordID source2, WordID target1, WordID target2, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
+void Alignment::ScoreDominance(const CountTable& table, int dom, WordID source1, WordID source2, WordID target1, WordID target2, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus) {
   //cerr << "ScoreDominance(source1=" << source1 << ",source2=" << source2 << ",target1=" << target1 << ",target2=" << target2 <<endl;
   //cerr << "cost=" << *cost << ", bo1=" << *bo1 << ", bo2=" << *bo2 << endl;
   string key1_part1(TD::Convert(source1));
@@ -1226,41 +1228,44 @@ void Alignment::ScoreDominance(CountTable table, int dom, WordID source1, WordID
   key += " "+key1_part3+" "+key1_part4;
   WordID key1_id = TD::Convert(key);
   //cerr << "ScoreDominance(key1=" << TD::Convert(key1_id) << ", key2=" << TD::Convert(key2_id) << endl;
-        double c1=0; 
+  double c1=0; 
   double t1=0; 
   double c2=0; 
   double t2=0; 
   double c3=0; 
   double t3=0;
-        if (table.first.find(key1_id)!=table.first.end()) {
-                c1 = table.first[key1_id][dom];
-                t1 = table.first[key1_id][4];
-        } else {
-                *bo1+=1;
+  map<WordID,int*>::const_iterator it = table.first.find(key1_id);
+  if (it!=table.first.end()) {
+    c1 = it->second[dom];
+    t1 = it->second[4];
+  } else {
+    *bo1+=1;
     //cerr << "adding bo1[1], new val=" << *bo1 << endl;
-        }
-        if (table.second.find(key2_id)!=table.second.end()) {
-                c2 = table.second[key2_id][dom];
-                t2 = table.second[key2_id][4];
-        } else {
-                *bo2+=1;
+  }
+  it = table.second.find(key2_id);
+  if (table.second.find(key2_id)!=table.second.end()) {
+    c2 = it->second[dom];
+    t2 = it->second[4];
+  } else {
+    *bo2+=1;
     //cerr << "adding bo2[1], new val=" << *bo2 << endl;
-        }
-        c3 = table.third[dom]; t3 = table.third[4];
+  }
+  c3 = table.third[dom]; t3 = table.third[4];
   //cerr << "ScoreDominance(" << c1 <<","<< t1 << " " << c2 << "," << t2 << " " << c3 << "," << t3 << ")" << endl;
-        double prob = log(( c1 + alpha3 * ((c2 + alpha4 * (c3/t3))/(t2 + alpha4))) / (t1 + alpha3));
+  double prob = log(( c1 + alpha3 * ((c2 + alpha4 * (c3/t3))/(t2 + alpha4))) / (t1 + alpha3));
   *cost += prob;
   //cerr << "adding cost [" << prob << "], new val=" << *cost << endl;
 }
 
-WordID Alignment::F2EProjection(int idx, string delimiter) {
+WordID Alignment::F2EProjection(int idx, const string& delimiter) {
   //cerr << "F2EProjection(" << idx << ")" << endl;
-  ostringstream projection(ostringstream::out);
   int e = targetOf(idx);
   if (e<0) {
     //cerr << "projection = NULL" << endl;
     return TD::Convert("NULL");
   } else {
+    if (targetOf(idx,e+1)<0) return _e[e-1]; // if not aligned to many, why bother continuing
+    ostringstream projection;
     bool firstTime = true;
     do {
       if (!firstTime) projection << delimiter; 
@@ -1273,9 +1278,8 @@ WordID Alignment::F2EProjection(int idx, string delimiter) {
   }
 }
 
-WordID Alignment::E2FProjection(int idx, string delimiter) {
+WordID Alignment::E2FProjection(int idx, const string& delimiter) {
   //cerr << "E2FProjection(" << idx << ")" << endl;
-        ostringstream projection(ostringstream::out);
   //cerr << "i" << endl;
   int f = sourceOf(idx);
   //cerr << "j, f=" << f << endl;
@@ -1283,7 +1287,9 @@ WordID Alignment::E2FProjection(int idx, string delimiter) {
     //cerr << "projection = NULL" << endl;
     return TD::Convert("NULL");
   } else {
+    if (sourceOf(idx,f+1)<0) return _f[f-1];
     bool firstTime = true;
+    ostringstream projection(ostringstream::out);
     do {
       if (!firstTime) projection << delimiter;
       projection << TD::Convert(_f[f-1]); //transform space
@@ -1295,7 +1301,7 @@ WordID Alignment::E2FProjection(int idx, string delimiter) {
   }
 }
 
-bool Alignment::prepare(TRule& rule, const std::vector<const void*>& ant_contexts, map<WordID,int> sfw, map<WordID,int> tfw) {  
+bool Alignment::prepare(TRule& rule, const std::vector<const void*>& ant_contexts, const map<WordID,int>& sfw, const map<WordID,int>& tfw) {  
   //cerr << "===Rule===" << rule.AsString() << endl;
   _f = rule.f();
   //cerr << "F: ";
@@ -1330,7 +1336,7 @@ bool Alignment::prepare(TRule& rule, const std::vector<const void*>& ant_context
 
   SourceFWRuleIdxs[0]=0;
   for (int idx=1; idx<=_f.size(); idx++) { // in transformed space
-    if (sfw[_f[idx-1]]==1) {
+    if (sfw.find(_f[idx-1])!=sfw.end()) {
       SourceFWRuleIdxs[0]++;
       SourceFWRuleIdxs[3*SourceFWRuleIdxs[0]-2]=idx;
       SourceFWRuleIdxs[3*SourceFWRuleIdxs[0]-1]=_f[idx-1];
@@ -1347,7 +1353,7 @@ bool Alignment::prepare(TRule& rule, const std::vector<const void*>& ant_context
   //cerr << endl;
   TargetFWRuleIdxs[0]=0;
   for (int idx=1; idx<=_e.size(); idx++) { // in transformed space
-    if (tfw[_e[idx-1]]==1) {
+    if (tfw.find(_e[idx-1])!=tfw.end()) {
       TargetFWRuleIdxs[0]++;
       TargetFWRuleIdxs[3*TargetFWRuleIdxs[0]-2]=idx;
       //TargetFWRuleIdxs[3*TargetFWRuleIdxs[0]-1]=E2FProjection(idx); // wrong place, als aren't yet set

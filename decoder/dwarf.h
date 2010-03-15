@@ -44,8 +44,8 @@ public:
   int getI() {return _I;};
   void setI(int I) { _I = I;};
   void setJ(int J) { _J = J;};
-  void setF(vector<WordID> f) { _f=f;};
-  void setE(vector<WordID> e) { _e=e;};
+  void setF(const vector<WordID>& f) { _f=f;};
+  void setE(const vector<WordID>& e) { _e=e;};
   void clearAls(int prevJ=200, int prevI=200);
   int sourceOf(int i, int start = -1);
   int targetOf(int j, int start = -1);
@@ -54,31 +54,31 @@ public:
   int minTSpan(int j) { return _tSpan[j][0];}
   int maxTSpan(int j) { return _tSpan[j][1];}
   Alignment();
-  bool prepare(TRule& rule, const std::vector<const void*>& ant_contexts, map<WordID,int> sfw, map<WordID,int> tfw);
+  bool prepare(TRule& rule, const std::vector<const void*>& ant_contexts, const map<WordID,int>& sfw, const map<WordID,int>& tfw);
   void simplify(int *ret);
   void simplify_nofw(int *ret);
   int DominanceSource(int fw1, int fw2);
   void OrientationSource(int fw, int*oril, int* orir, bool Lcompute=true, bool Rcompute=true);
   int DominanceTarget(int fw1, int fw2);
   void OrientationTarget(int fw, int*oril, int* orir, bool Lcompute=true, bool Rcompute=true);
-  void ScoreOrientationRight(CountTable table, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void ScoreOrientationLeft(CountTable table, int ori, WordID cond1, WordID cond, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void ScoreOrientation(CountTable table, int offset, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void computeOrientationSource(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void computeOrientationTarget(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void computeDominanceSource(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void computeDominanceTarget(CountTable table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
-  void ScoreDominance(CountTable table, int dom, WordID s1, WordID s2, WordID t1, WordID t2, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void ScoreOrientationRight(const CountTable& table, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void ScoreOrientationLeft(const CountTable& table, int ori, WordID cond1, WordID cond, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void ScoreOrientation(const CountTable& table, int offset, int ori, WordID cond1, WordID cond2, bool isBonus, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void computeOrientationSource(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void computeOrientationTarget(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void computeDominanceSource(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void computeDominanceTarget(const CountTable& table, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
+  void ScoreDominance(const CountTable& table, int dom, WordID s1, WordID s2, WordID t1, WordID t2, double *cost, double *bonus, double *bo1, double *bo1_bonus, double *bo2, double *bo2_bonus);
   void SetSourceBorderingFW();
   void SetTargetBorderingFW();
   void fillFWIdxs(int *state, int fas, int las, int fat, int lat);
-  WordID F2EProjection(int idx, string delimiter=" ");
-  WordID E2FProjection(int idx, string delimiter=" ");
+  WordID F2EProjection(int idx, const string& delimiter=" ");
+  WordID E2FProjection(int idx, const string& delimiter=" ");
   vector<int> ToVectorInt();
   string AsString();
-  static int link(int s, int t) { return s*65536 + t; }
-  static int source(int st) {return st / 65536; }
-  static int target(int st) {return st % 65536; }
+  static inline int link(int s, int t) { return s*65536 + t; }
+  static inline int source(int st) {return st / 65536; }
+  static inline int target(int st) {return st % 65536; }
   
 private:
   unordered_map<vector<int>, int, boost::hash<vector<int> > > oris_hash;
@@ -117,7 +117,7 @@ private:
   int* blockTarget(int fw1, int fw2);
   int least(int i1, int i2) { return (i1<i2)?i1:i2; }
   int most(int i1, int i2) { return (i1>i2)?i1:i2; }
-  void SplitIfViolateDanglingTargetFWIdxs(vector<int *>*blocks, int* block, vector<int>danglings);
+  void SplitIfViolateDanglingTargetFWIdxs(vector<int *>*blocks, int* block, const vector<int>& danglings);
   int _Arity;
   std::vector<WordID> _f;
   std::vector<WordID> _e;
